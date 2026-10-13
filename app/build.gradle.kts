@@ -37,6 +37,13 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/NOTICE.md",
+                "META-INF/LICENSE.md")
+        }
+    }
 }
 
 dependencies {
@@ -55,7 +62,13 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-
     implementation("androidx.recyclerview:recyclerview:1.4.0")
+
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.9")
+
+    implementation("com.sun.mail:android-mail:1.6.8")
+    implementation("com.sun.mail:android-activation:1.6.8")
+
 
 }
