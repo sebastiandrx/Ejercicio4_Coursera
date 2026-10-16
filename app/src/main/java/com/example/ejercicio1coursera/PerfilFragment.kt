@@ -1,174 +1,93 @@
 
 package com.example.ejercicio1coursera
 
-import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-data class PublicacionMascota(
-    val imagen: String,
-    val color: Int,
+data class FotoMascota(
+    val imagen: Int,
     val rating: Int
 )
 
 class PerfilFragment : Fragment() {
 
     override fun onCreateView(
-        inflater: android.view.LayoutInflater,
+        inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
 
-        val ctx = requireContext()
-
-        val raiz = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.WHITE)
-            setPadding(ctx.dp(12), ctx.dp(18), ctx.dp(12), 0)
-        }
-
-        val fotoPerfil = TextView(ctx).apply {
-            text = "🐕"
-            textSize = 65f
-            gravity = Gravity.CENTER
-
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.rgb(255, 128, 171))
-            }
-        }
-
-        val fotoParams = LinearLayout.LayoutParams(
-            ctx.dp(115),
-            ctx.dp(115)
-        ).apply {
-            gravity = Gravity.CENTER_HORIZONTAL
-        }
-
-        raiz.addView(fotoPerfil, fotoParams)
-
-        val nombre = TextView(ctx).apply {
-            text = "Catty"
-            textSize = 26f
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.rgb(77, 62, 66))
-            gravity = Gravity.CENTER
-        }
-
-        raiz.addView(
-            nombre,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ctx.dp(50)
-            )
+        val vista = inflater.inflate(
+            R.layout.fragment_perfil,
+            container,
+            false
         )
 
-        val subtitulo = TextView(ctx).apply {
-            text = "Mis fotografías"
-            textSize = 18f
-            setTextColor(Color.DKGRAY)
-            setPadding(0, ctx.dp(12), 0, ctx.dp(12))
-        }
-
-        raiz.addView(subtitulo)
+        val recycler = vista.findViewById<RecyclerView>(
+            R.id.recyclerFotos
+        )
 
         val publicaciones = listOf(
-            PublicacionMascota("🐕", 0xFFFF80AB.toInt(), 5),
-            PublicacionMascota("🐶", 0xFF64B5F6.toInt(), 3),
-            PublicacionMascota("🐕", 0xFFFFCC80.toInt(), 8),
-            PublicacionMascota("🐩", 0xFFA5D6A7.toInt(), 4),
-            PublicacionMascota("🐕", 0xFFCE93D8.toInt(), 7),
-            PublicacionMascota("🐶", 0xFF80CBC4.toInt(), 6)
+            FotoMascota(R.drawable.perro1, 5),
+            FotoMascota(R.drawable.perro2, 3),
+            FotoMascota(R.drawable.perro3, 8),
+            FotoMascota(R.drawable.perro4, 4),
+            FotoMascota(R.drawable.perro5, 7),
+            FotoMascota(R.drawable.perro6, 6)
         )
 
-        val grid = RecyclerView(ctx).apply {
-            layoutManager = GridLayoutManager(ctx, 2)
-            adapter = PublicacionesAdapter(publicaciones)
-            clipToPadding = false
-        }
-
-        raiz.addView(
-            grid,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
+        recycler.layoutManager = GridLayoutManager(
+            requireContext(),
+            2
         )
 
-        return raiz
+        recycler.adapter = FotosAdapter(publicaciones)
+
+        return vista
     }
 }
 
-class PublicacionesAdapter(
-    private val publicaciones: List<PublicacionMascota>
-) : RecyclerView.Adapter<PublicacionesAdapter.Holder>() {
+class FotosAdapter(
+    private val fotos: List<FotoMascota>
+) : RecyclerView.Adapter<FotosAdapter.FotoViewHolder>() {
 
-    class Holder(
-        val layout: LinearLayout,
-        val imagen: TextView,
-        val rating: TextView
-    ) : RecyclerView.ViewHolder(layout)
+    class FotoViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
+
+        val imagen: ImageView =
+            itemView.findViewById(R.id.imagenFoto)
+
+        val rating: TextView =
+            itemView.findViewById(R.id.ratingFoto)
+    }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): Holder {
+    ): FotoViewHolder {
 
-        val ctx = parent.context
+        val vista = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_foto, parent, false)
 
-        val layout = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(ctx.dp(5), ctx.dp(5), ctx.dp(5), ctx.dp(10))
-        }
-
-        val imagen = TextView(ctx).apply {
-            textSize = 65f
-            gravity = Gravity.CENTER
-        }
-
-        layout.addView(
-            imagen,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ctx.dp(150)
-            )
-        )
-
-        val rating = TextView(ctx).apply {
-            textSize = 17f
-            gravity = Gravity.CENTER
-            setTextColor(Color.rgb(77, 62, 66))
-        }
-
-        layout.addView(rating)
-
-        return Holder(layout, imagen, rating)
+        return FotoViewHolder(vista)
     }
 
     override fun onBindViewHolder(
-        holder: Holder,
+        holder: FotoViewHolder,
         position: Int
     ) {
-        val item = publicaciones[position]
+        val foto = fotos[position]
 
-        holder.imagen.text = item.imagen
-        holder.imagen.background = fondoRedondeado(
-            item.color,
-            16f
-        )
-
-        holder.rating.text = "🦴 ${item.rating}"
+        holder.imagen.setImageResource(foto.imagen)
+        holder.rating.text = "🦴 ${foto.rating}"
     }
 
-    override fun getItemCount(): Int = publicaciones.size
+    override fun getItemCount(): Int = fotos.size
 }

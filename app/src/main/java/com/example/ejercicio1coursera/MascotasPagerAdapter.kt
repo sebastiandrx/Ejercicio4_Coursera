@@ -15,7 +15,9 @@ class MascotasPagerAdapter(
         return when (position) {
             0 -> MascotasFragment()
             1 -> PerfilFragment()
-            else -> MascotasFragment()
+            else -> throw IllegalArgumentException(
+                "Posición no válida: $position"
+            )
         }
     }
 }

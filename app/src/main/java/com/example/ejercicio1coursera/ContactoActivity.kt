@@ -1,240 +1,137 @@
 
 package com.example.ejercicio1coursera
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.text.InputType
 import android.util.Patterns
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 
 class ContactoActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_contacto)
 
-        setContent {
-            MaterialTheme(
-                colorScheme = lightColorScheme(
-                    primary = Color(0xFF75E2E9),
-                    onPrimary = Color(0xFF4D3E42),
-                    secondary = Color(0xFFEF5344)
-                )
-            ) {
-                FormularioContacto { nombre, correo, mensaje,
-                                     cuenta, clave, destino, resultado ->
+        val nombre = findViewById<TextInputEditText>(R.id.etNombre)
+        val correo = findViewById<TextInputEditText>(R.id.etCorreo)
+        val mensaje = findViewById<TextInputEditText>(R.id.etMensaje)
 
-                    Thread {
-                        val respuesta = CorreoSender.enviar(
-                            nombre = nombre,
-                            correo = correo,
-                            mensaje = mensaje,
-                            cuenta = cuenta,
-                            clave = clave,
-                            destino = destino
-                        )
+        val layoutNombre =
+            findViewById<TextInputLayout>(R.id.layoutNombre)
+        val layoutCorreo =
+            findViewById<TextInputLayout>(R.id.layoutCorreo)
+        val layoutMensaje =
+            findViewById<TextInputLayout>(R.id.layoutMensaje)
 
-                        runOnUiThread {
-                            resultado(respuesta)
-                        }
-                    }.start()
+        findViewById<MaterialButton>(R.id.btnEnviar)
+            .setOnClickListener {
+
+                val n = nombre.text.toString().trim()
+                val c = correo.text.toString().trim()
+                val m = mensaje.text.toString().trim()
+
+                layoutNombre.error =
+                    if (n.isEmpty()) "Ingresa tu nombre" else null
+
+                layoutCorreo.error =
+                    if (!Patterns.EMAIL_ADDRESS.matcher(c).matches())
+                        "Correo inválido" else null
+
+                layoutMensaje.error =
+                    if (m.isEmpty()) "Escribe tu mensaje" else null
+
+                if (n.isNotEmpty() &&
+                    Patterns.EMAIL_ADDRESS.matcher(c).matches() &&
+                    m.isNotEmpty()
+                ) {
+                    configurarEnvio(n, c, m)
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun FormularioContacto(
-    onEnviar: (
-        String, String, String, String,
-        String, String, (String) -> Unit
-    ) -> Unit
-) {
-    var nombre by remember { mutableStateOf("") }
-    var correo by remember { mutableStateOf("") }
-    var mensaje by remember { mutableStateOf("") }
-
-    var mostrarConfiguracion by remember {
-        mutableStateOf(false)
     }
 
-    var resultado by remember {
-        mutableStateOf("")
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+    private fun configurarEnvio(
+        nombre: String,
+        correo: String,
+        mensaje: String
     ) {
-        Text(
-            text = "Contáctanos",
-            fontSize = 30.sp,
-            color = Color(0xFF4D3E42)
-        )
-
-        Text("Envíanos tus comentarios sobre Petagram.")
-
-        OutlinedTextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text("Nombre completo") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = correo,
-            onValueChange = { correo = it },
-            label = { Text("Correo electrónico") },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email
-            ),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = mensaje,
-            onValueChange = { mensaje = it },
-            label = { Text("Tu mensaje") },
-            minLines = 5,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Button(
-            onClick = {
-                if (
-                    nombre.isNotBlank() &&
-                    Patterns.EMAIL_ADDRESS.matcher(correo).matches() &&
-                    mensaje.isNotBlank()
-                ) {
-                    resultado = ""
-                    mostrarConfiguracion = true
-                } else {
-                    resultado = "Completa los campos y revisa el correo."
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("ENVIAR COMENTARIO")
+        val formulario = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(40, 12, 40, 0)
         }
 
-        if (resultado.isNotEmpty()) {
-            Text(resultado)
+        fun campo(hint: String): EditText {
+            return EditText(this).apply {
+                this.hint = hint
+                formulario.addView(this)
+            }
         }
-    }
 
-    if (mostrarConfiguracion) {
+        val cuenta = campo("Cuenta Gmail de envío")
+        val clave = campo("Contraseña de aplicación").apply {
+            inputType = InputType.TYPE_CLASS_TEXT or
+                    InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val destino = campo("Correo de destino")
 
-        var cuenta by remember { mutableStateOf("") }
-        var clave by remember { mutableStateOf("") }
-        var destino by remember { mutableStateOf("") }
+        val dialogo = AlertDialog.Builder(this)
+            .setTitle("Enviar comentario")
+            .setMessage("Configuración SMTP para la prueba")
+            .setView(formulario)
+            .setNegativeButton("Cancelar", null)
+            .setPositiveButton("Enviar", null)
+            .create()
 
-        var enviando by remember { mutableStateOf(false) }
+        dialogo.setOnShowListener {
+            val boton = dialogo.getButton(
+                AlertDialog.BUTTON_POSITIVE
+            )
 
-        AlertDialog(
-            onDismissRequest = {
-                if (!enviando) mostrarConfiguracion = false
-            },
+            boton.setOnClickListener {
+                val usuario = cuenta.text.toString().trim()
+                val password = clave.text.toString()
+                val receptor = destino.text.toString().trim()
 
-            title = {
-                Text("Configuración de envío")
-            },
-
-            text = {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                if (!Patterns.EMAIL_ADDRESS.matcher(usuario).matches() ||
+                    password.isBlank() ||
+                    !Patterns.EMAIL_ADDRESS.matcher(receptor).matches()
                 ) {
-                    Text(
-                        "Para esta demostración, ingresa una cuenta " +
-                                "SMTP de Gmail y su contraseña de aplicación."
-                    )
-
-                    OutlinedTextField(
-                        value = cuenta,
-                        onValueChange = { cuenta = it },
-                        label = { Text("Cuenta Gmail de envío") },
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = clave,
-                        onValueChange = { clave = it },
-                        label = { Text("Contraseña de aplicación") },
-                        visualTransformation =
-                            PasswordVisualTransformation(),
-                        singleLine = true
-                    )
-
-                    OutlinedTextField(
-                        value = destino,
-                        onValueChange = { destino = it },
-                        label = { Text("Correo de destino") },
-                        singleLine = true
-                    )
-
-                    if (enviando) {
-                        CircularProgressIndicator()
-                    }
+                    Toast.makeText(
+                        this,
+                        "Revisa la configuración SMTP",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
                 }
-            },
 
-            confirmButton = {
-                TextButton(
-                    enabled = !enviando &&
-                            cuenta.isNotBlank() &&
-                            clave.isNotBlank() &&
-                            Patterns.EMAIL_ADDRESS
-                                .matcher(destino).matches(),
-                    onClick = {
-                        enviando = true
+                boton.isEnabled = false
 
-                        onEnviar(
-                            nombre,
-                            correo,
-                            mensaje,
-                            cuenta,
-                            clave,
-                            destino
-                        ) { respuesta ->
-                            enviando = false
-                            resultado = respuesta
-                            mostrarConfiguracion = false
+                Thread {
+                    val resultado = CorreoSender.enviar(
+                        nombre, correo, mensaje,
+                        usuario, password, receptor
+                    )
+
+                    runOnUiThread {
+                        if (!isFinishing && !isDestroyed) {
+                            Toast.makeText(
+                                this,
+                                resultado,
+                                Toast.LENGTH_LONG
+                            ).show()
+                            dialogo.dismiss()
                         }
                     }
-                ) {
-                    Text("ENVIAR")
-                }
-            },
-
-            dismissButton = {
-                TextButton(
-                    enabled = !enviando,
-                    onClick = {
-                        mostrarConfiguracion = false
-                    }
-                ) {
-                    Text("CANCELAR")
-                }
+                }.start()
             }
-        )
+        }
+
+        dialogo.show()
     }
 }

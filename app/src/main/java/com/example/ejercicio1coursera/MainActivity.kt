@@ -5,12 +5,13 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 
 class MainActivity : FragmentActivity() {
 
@@ -45,8 +46,7 @@ class MainActivity : FragmentActivity() {
             textSize = 30f
             gravity = Gravity.CENTER
             setTextColor(Color.rgb(239, 83, 68))
-            contentDescription = "Mascotas favoritas"
-
+            contentDescription = "Ver mascotas favoritas"
             setOnClickListener {
                 startActivity(
                     Intent(
@@ -62,22 +62,21 @@ class MainActivity : FragmentActivity() {
             LinearLayout.LayoutParams(dp(48), dp(60))
         )
 
-        val menu = TextView(this).apply {
+        val opciones = TextView(this).apply {
             text = "⋮"
             textSize = 30f
             gravity = Gravity.CENTER
-            setTextColor(Color.rgb(77, 62, 66))
-            contentDescription = "Menú de opciones"
+            contentDescription = "Opciones"
 
             setOnClickListener {
                 val popup = PopupMenu(this@MainActivity, this)
 
-                popup.menu.add("Contacto")
-                popup.menu.add("Acerca De")
+                popup.menu.add(0, 1, 0, "Contacto")
+                popup.menu.add(0, 2, 1, "Acerca De")
 
                 popup.setOnMenuItemClickListener { item ->
-                    when (item.title.toString()) {
-                        "Contacto" -> {
+                    when (item.itemId) {
+                        1 -> {
                             startActivity(
                                 Intent(
                                     this@MainActivity,
@@ -86,8 +85,7 @@ class MainActivity : FragmentActivity() {
                             )
                             true
                         }
-
-                        "Acerca De" -> {
+                        2 -> {
                             startActivity(
                                 Intent(
                                     this@MainActivity,
@@ -96,7 +94,6 @@ class MainActivity : FragmentActivity() {
                             )
                             true
                         }
-
                         else -> false
                     }
                 }
@@ -106,37 +103,22 @@ class MainActivity : FragmentActivity() {
         }
 
         barra.addView(
-            menu,
+            opciones,
             LinearLayout.LayoutParams(dp(48), dp(60))
         )
 
         raiz.addView(barra)
 
-        val tabs = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
+        val tabs = TabLayout(this).apply {
+            setBackgroundColor(Color.WHITE)
+            setSelectedTabIndicatorColor(
+                Color.rgb(77, 62, 66)
+            )
+            setTabTextColors(
+                Color.GRAY,
+                Color.rgb(77, 62, 66)
+            )
         }
-
-        val tabMascotas = TextView(this).apply {
-            text = "MASCOTAS"
-            gravity = Gravity.CENTER
-            textSize = 15f
-        }
-
-        val tabPerfil = TextView(this).apply {
-            text = "PERFIL"
-            gravity = Gravity.CENTER
-            textSize = 15f
-        }
-
-        tabs.addView(
-            tabMascotas,
-            LinearLayout.LayoutParams(0, dp(48), 1f)
-        )
-
-        tabs.addView(
-            tabPerfil,
-            LinearLayout.LayoutParams(0, dp(48), 1f)
-        )
 
         raiz.addView(tabs)
 
@@ -148,43 +130,20 @@ class MainActivity : FragmentActivity() {
         raiz.addView(
             pager,
             LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 0,
                 1f
             )
         )
 
-        fun actualizarTabs(posicion: Int) {
-            val activo = Color.rgb(57, 73, 171)
-            val inactivo = Color.GRAY
-
-            tabMascotas.setTextColor(
-                if (posicion == 0) activo else inactivo
-            )
-
-            tabPerfil.setTextColor(
-                if (posicion == 1) activo else inactivo
-            )
-        }
-
-        tabMascotas.setOnClickListener {
-            pager.currentItem = 0
-        }
-
-        tabPerfil.setOnClickListener {
-            pager.currentItem = 1
-        }
-
-        pager.registerOnPageChangeCallback(
-            object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) {
-                    actualizarTabs(position)
-                }
-            }
-        )
-
-        actualizarTabs(0)
-
         setContentView(raiz)
+
+        TabLayoutMediator(tabs, pager) { tab, position ->
+            tab.text = when (position) {
+                0 -> "MASCOTAS"
+                1 -> "PERFIL"
+                else -> ""
+            }
+        }.attach()
     }
 }

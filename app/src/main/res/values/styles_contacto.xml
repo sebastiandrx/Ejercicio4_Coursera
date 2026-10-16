@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Tema principal de Petagram -->
+    <style name="Theme.Petagram"
+        parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+        <item name="colorPrimary">#75E2E9</item>
+        <item name="colorPrimaryVariant">#4D3E42</item>
+        <item name="colorSecondary">#EF5344</item>
+        <item name="android:statusBarColor">#4D3E42</item>
+        <item name="android:navigationBarColor">#4D3E42</item>
+
+    </style>
+
+    <!-- Tema del formulario Contacto -->
+    <style name="Theme.Petagram.Contacto"
+        parent="Theme.Petagram">
+
+        <item name="colorPrimary">#4D3E42</item>
+        <item name="colorSecondary">#EF5344</item>
+
+    </style>
+
+    <!-- Imagen circular del perfil -->
+    <style name="ShapeAppearanceOverlay.Petagram.Circle"
+        parent="">
+
+        <item name="cornerSize">50%</item>
+
+    </style>
+
+</resources>
